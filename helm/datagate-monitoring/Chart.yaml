@@ -1,0 +1,14 @@
+apiVersion: v2
+name: datagate-monitoring
+description: DataGate Data Platform Monitoring — Angular frontend + ASP.NET Core backend
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - monitoring
+  - airflow
+  - trino
+  - kubernetes
+  - spark
+maintainers:
+  - name: DataGate Team

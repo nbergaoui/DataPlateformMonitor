@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend/DataGate.Monitoring.API
+      dockerfile: Dockerfile
+    ports:
+      - "5000:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      # Override connection settings for local dev
+      Monitoring__Airflow__BaseUrl: "http://host.docker.internal:8080"
+      Monitoring__Airflow__KeycloakUrl: "http://host.docker.internal:8180/realms/datagate/protocol/openid-connect/token"
+      Monitoring__Airflow__ClientId: "datagate-monitoring"
+      Monitoring__Airflow__ClientSecret: "${AIRFLOW_CLIENT_SECRET}"
+      Monitoring__Trino__BaseUrl: "http://host.docker.internal:8081"
+      Monitoring__Trino__User: "datagate-monitoring"
+      Monitoring__Trino__Password: "${TRINO_PASSWORD}"
+      Monitoring__Kubernetes__InCluster: "false"
+      Monitoring__Database__Host: "host.docker.internal"
+      Monitoring__Database__Port: "5432"
+      Monitoring__Database__Name: "datagate_kpis"
+      Monitoring__Database__User: "datagate_ro"
+      Monitoring__Database__Password: "${DB_PASSWORD}"
+      Cors__AllowedOrigins__0: "http://localhost:4200"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+networks:
+  default:
+    name: datagate-monitoring

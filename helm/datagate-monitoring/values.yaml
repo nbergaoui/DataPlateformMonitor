@@ -1,0 +1,104 @@
+# Global settings
+replicaCount: 1
+
+# ─── Backend (ASP.NET Core API) ───────────────────────────────────────────────
+backend:
+  image:
+    repository: your-registry/datagate-monitoring-api
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 8080
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  env:
+    ASPNETCORE_ENVIRONMENT: Production
+    ASPNETCORE_URLS: http://+:8080
+
+  # Mounted from secret: datagate-monitoring-secret
+  secretEnv:
+    AIRFLOW__KEYCLOAK_CLIENT_SECRET: ""   # set in secret
+    DB__PASSWORD: ""                       # set in secret
+
+  config:
+    airflow:
+      baseUrl: "http://airflow-webserver.airflow.svc.cluster.local:8080"
+      keycloakUrl: "https://keycloak.example.com/realms/datagate/protocol/openid-connect/token"
+      clientId: "datagate-monitoring"
+    trino:
+      baseUrl: "http://trino.trino.svc.cluster.local:8080"
+      user: "datagate-monitoring"
+    kubernetes:
+      inCluster: true
+      sparkNamespace: "spark-jobs"
+      airflowNamespace: "airflow"
+    database:
+      host: "postgres.datagate.svc.cluster.local"
+      port: 5432
+      name: "datagate_kpis"
+      user: "datagate_ro"
+    cors:
+      allowedOrigins: "https://monitoring.datagate.example.com"
+
+# ─── Frontend (Angular / Nginx) ───────────────────────────────────────────────
+frontend:
+  image:
+    repository: your-registry/datagate-monitoring-ui
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 80
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+# ─── Ingress ──────────────────────────────────────────────────────────────────
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+  host: monitoring.datagate.example.com
+  tls:
+    enabled: true
+    secretName: datagate-monitoring-tls
+
+# ─── ServiceAccount ───────────────────────────────────────────────────────────
+serviceAccount:
+  create: true
+  name: datagate-monitoring
+  # RBAC rules allow the backend to call the K8s API (read nodes/pods)
+  clusterRoleRules:
+    - apiGroups: [""]
+      resources: ["nodes", "pods"]
+      verbs: ["get", "list", "watch"]
+    - apiGroups: [""]
+      resources: ["namespaces"]
+      verbs: ["get", "list"]
+
+# ─── Pod settings ─────────────────────────────────────────────────────────────
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+imagePullSecrets: []

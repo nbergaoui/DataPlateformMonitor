@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "datagate-monitoring.fullname" . }}-config
+  labels:
+    {{- include "datagate-monitoring.labels" . | nindent 4 }}
+data:
+  appsettings.Production.json: |
+    {
+      "Airflow": {
+        "BaseUrl": {{ .Values.backend.config.airflow.baseUrl | quote }},
+        "KeycloakUrl": {{ .Values.backend.config.airflow.keycloakUrl | quote }},
+        "ClientId": {{ .Values.backend.config.airflow.clientId | quote }},
+        "ClientSecret": ""
+      },
+      "Trino": {
+        "BaseUrl": {{ .Values.backend.config.trino.baseUrl | quote }},
+        "User": {{ .Values.backend.config.trino.user | quote }},
+        "Password": ""
+      },
+      "Kubernetes": {
+        "InCluster": {{ .Values.backend.config.kubernetes.inCluster }},
+        "SparkNamespace": {{ .Values.backend.config.kubernetes.sparkNamespace | quote }},
+        "AirflowNamespace": {{ .Values.backend.config.kubernetes.airflowNamespace | quote }}
+      },
+      "Database": {
+        "Host": {{ .Values.backend.config.database.host | quote }},
+        "Port": {{ .Values.backend.config.database.port }},
+        "Name": {{ .Values.backend.config.database.name | quote }},
+        "User": {{ .Values.backend.config.database.user | quote }},
+        "Password": ""
+      },
+      "Cors": {
+        "AllowedOrigins": {{ .Values.backend.config.cors.allowedOrigins | quote }}
+      },
+      "Logging": {
+        "LogLevel": {
+          "Default": "Information",
+          "Microsoft.AspNetCore": "Warning"
+        }
+      }
+    }
