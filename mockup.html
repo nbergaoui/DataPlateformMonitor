@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DataGate — Platform Monitoring</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* Palette logo DataGate */
+      --teal:       #0BAEC0;
+      --teal-light: #E0F7FA;
+      --teal-mid:   #B2EBF2;
+      --teal-dark:  #007B8E;
+      --orange:     #F26522;
+      --orange-lt:  #FFF0E8;
+      --navy:       #1E3A4A;
+      --navy-mid:   #2E5266;
+
+      /* Light theme */
+      --bg:         #F4FBFC;
+      --surface:    #FFFFFF;
+      --border:     #CBE9ED;
+      --border-lt:  #E5F4F6;
+      --text:       #1E3A4A;
+      --muted:      #5E8A95;
+      --muted-lt:   #A8C8CE;
+
+      /* Statuts */
+      --success:    #16A34A;
+      --success-lt: #DCFCE7;
+      --warning:    #D97706;
+      --warning-lt: #FEF3C7;
+      --danger:     #DC2626;
+      --danger-lt:  #FEE2E2;
+      --info:       #0BAEC0;
+      --info-lt:    #E0F7FA;
+
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(11,174,192,.10), 0 1px 2px rgba(0,0,0,.04);
+      --shadow-md: 0 4px 12px rgba(11,174,192,.12), 0 2px 4px rgba(0,0,0,.06);
+    }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 14px;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--surface);
+      border-bottom: 2px solid var(--teal);
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      box-shadow: var(--shadow);
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 17px;
+      color: var(--navy);
+      letter-spacing: .2px;
+    }
+    .logo-circle {
+      width: 58px; height: 58px;
+      border-radius: 50%;
+      background-image: url('/Users/nouhabergaoui/Downloads/logo-data-gate.png');
+      background-size: 270%;
+      background-position: 50% 40%;
+      background-repeat: no-repeat;
+      background-color: #fff;
+      box-shadow: 0 2px 8px rgba(11,174,192,.25);
+      flex-shrink: 0;
+    }
+    .logo-text { font-size: 20px; line-height: 1; }
+    .logo-text span { color: var(--teal); }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .refresh-badge {
+      background: var(--teal-light);
+      border: 1px solid var(--teal-mid);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      display: flex; align-items: center; gap: 6px;
+      color: var(--teal-dark);
+    }
+    .dot-live {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--teal);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    .env-badge {
+      background: var(--navy);
+      color: #fff;
+      border-radius: 4px;
+      padding: 3px 10px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* ── Tabs principaux ── */
+    .tabs {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      display: flex;
+      gap: 2px;
+    }
+    .tab {
+      padding: 14px 22px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all .18s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+      margin-bottom: -1px;
+    }
+    .tab:hover { color: var(--teal-dark); background: var(--teal-light); }
+    .tab.active { color: var(--teal-dark); border-bottom-color: var(--teal); font-weight: 600; }
+    .tab-badge {
+      background: var(--danger);
+      color: #fff;
+      border-radius: 10px;
+      padding: 1px 7px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    /* ── Sous-onglets (Infra) ── */
+    .subtabs {
+      background: var(--teal-light);
+      border-bottom: 1px solid var(--teal-mid);
+      padding: 0 32px;
+      display: flex;
+      gap: 2px;
+    }
+    .subtab {
+      padding: 10px 18px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--navy-mid);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all .15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      user-select: none;
+      margin-bottom: -1px;
+    }
+    .subtab:hover { color: var(--teal-dark); }
+    .subtab.active {
+      color: var(--teal-dark);
+      border-bottom-color: var(--teal);
+      font-weight: 600;
+      background: var(--surface);
+      border-radius: 6px 6px 0 0;
+    }
+    .subtab-badge-ok   { width:7px;height:7px;border-radius:50%;background:var(--success);display:inline-block; }
+    .subtab-badge-warn { width:7px;height:7px;border-radius:50%;background:var(--warning);display:inline-block; }
+    .subtab-badge-err  { width:7px;height:7px;border-radius:50%;background:var(--danger);display:inline-block; }
+
+    /* ── Layout ── */
+    .content { padding: 24px 32px; }
+    .pane    { display: none; }
+    .pane.active { display: block; }
+    .subpane { display: none; }
+    .subpane.active { display: block; }
+
+    /* ── Grilles ── */
+    .grid { display: grid; gap: 16px; }
+    .grid-4 { grid-template-columns: repeat(4,1fr); }
+    .grid-3 { grid-template-columns: repeat(3,1fr); }
+    .grid-2 { grid-template-columns: repeat(2,1fr); }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--muted);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* ── Pills ── */
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .pill-success { background: var(--success-lt); color: var(--success); }
+    .pill-danger  { background: var(--danger-lt);  color: var(--danger); }
+    .pill-warning { background: var(--warning-lt); color: var(--warning); }
+    .pill-info    { background: var(--info-lt);    color: var(--teal-dark); }
+    .pill-muted   { background: var(--border-lt);  color: var(--muted); }
+    .pill-orange  { background: var(--orange-lt);  color: var(--orange); }
+    .pill-dot { width:6px;height:6px;border-radius:50%;background:currentColor; }
+
+    /* ── KPI card ── */
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      box-shadow: var(--shadow);
+      border-top: 3px solid var(--teal);
+    }
+    .kpi-card.orange { border-top-color: var(--orange); }
+    .kpi-card.danger { border-top-color: var(--danger); }
+    .kpi-card.success{ border-top-color: var(--success); }
+    .kpi-label  { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    .kpi-number { font-size: 30px; font-weight: 800; letter-spacing: -1px; color: var(--navy); }
+    .kpi-delta  { font-size: 12px; margin-top: 6px; }
+    .kpi-delta.up   { color: var(--success); }
+    .kpi-delta.down { color: var(--danger); }
+    .kpi-delta.neutral { color: var(--muted); }
+
+    /* ── Status service card ── */
+    .svc-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .svc-card.degraded { border-color: var(--danger); background: #fff8f8; }
+    .svc-name   { font-size: 12px; color: var(--muted); margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing:.5px; }
+    .svc-status { font-size: 18px; font-weight: 700; }
+    .svc-detail { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .svc-icon {
+      width: 42px; height: 42px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ── Bars ── */
+    .bar-wrap { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 4px; }
+    .bar-fill  { height: 100%; border-radius: 3px; transition: width .3s; }
+    .bar-ok    { background: var(--success); }
+    .bar-mid   { background: var(--warning); }
+    .bar-hi    { background: var(--danger); }
+    .bar-teal  { background: var(--teal); }
+
+    /* ── Node grid ── */
+    .node-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+    .node-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 14px;
+    }
+    .node-name { font-size: 12px; font-weight: 600; margin-bottom: 8px; color: var(--navy); display:flex;align-items:center;gap:6px; }
+    .node-meta { font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; margin-bottom: 3px; }
+
+    /* ── Section title ── */
+    .section-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--navy);
+    }
+    .section-title .count { font-size: 12px; color: var(--muted); font-weight: 400; }
+
+    /* ── Table ── */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead tr { background: var(--bg); }
+    th { padding: 9px 14px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); border-bottom: 1px solid var(--border); }
+    td { padding: 11px 14px; border-bottom: 1px solid var(--border-lt); }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: var(--teal-light); }
+    .cell-name  { font-weight: 600; color: var(--navy); }
+    .cell-sub   { font-size: 11px; color: var(--muted); }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .toolbar label { font-size: 12px; color: var(--muted); }
+    .toolbar input[type="date"], .toolbar select {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 12px;
+      color: var(--text);
+      font-size: 13px;
+    }
+    .toolbar input:focus, .toolbar select:focus { outline: 2px solid var(--teal); border-color: var(--teal); }
+    .btn {
+      background: var(--teal);
+      border: none;
+      border-radius: 6px;
+      padding: 7px 16px;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .btn:hover { background: var(--teal-dark); }
+    .btn-danger { background: var(--danger); }
+    .btn-danger:hover { background: #b91c1c; }
+    .btn-ghost {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 14px;
+      color: var(--navy-mid);
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .btn-ghost:hover { border-color: var(--teal); color: var(--teal-dark); }
+    .spacer { flex: 1; }
+
+    /* ── Alert banner ── */
+    .alert-banner {
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      border: 1px solid;
+      margin-bottom: 20px;
+    }
+    .alert-banner.critical { background: #fff5f5; border-color: #fca5a5; }
+    .alert-banner.warning  { background: #fffbeb; border-color: #fcd34d; }
+    .alert-banner.ok       { background: var(--success-lt); border-color: #86efac; }
+    .alert-title    { font-size: 14px; font-weight: 700; display:flex;align-items:center;gap:8px; }
+    .alert-subtitle { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+
+    /* ── Metrics row ── */
+    .metrics-row { display:flex;flex-wrap:wrap; }
+    .metric-cell {
+      flex: 1;
+      min-width: 130px;
+      padding: 12px 16px;
+      border-right: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .metric-cell:last-child { border-right: none; }
+    .metric-cell:first-child { border-radius: var(--radius) 0 0 var(--radius); }
+    .metric-cell:last-child  { border-radius: 0 var(--radius) var(--radius) 0; }
+    .m-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing:.4px; }
+    .m-value { font-size: 22px; font-weight: 800; color: var(--navy); }
+    .m-sub   { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    /* ── Cascade steps ── */
+    .cascade-step {
+      display: flex;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-lt);
+      align-items: flex-start;
+    }
+    .cascade-step:last-child { border-bottom: none; }
+    .step-num {
+      min-width: 26px; height: 26px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700;
+    }
+    .step-danger { background: var(--danger-lt); color: var(--danger); border: 1px solid #fca5a5; }
+    .step-warn   { background: var(--warning-lt); color: var(--warning); border: 1px solid #fcd34d; }
+    .step-title  { font-size: 13px; font-weight: 600; }
+    .step-desc   { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+
+    /* ── Drift bars ── */
+    .drift-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-lt);
+      font-size: 13px;
+    }
+    .drift-row:last-child { border-bottom: none; }
+    .drift-label { flex: 1; }
+    .drift-bar-wrap { width: 160px; height: 7px; background: var(--border); border-radius: 4px; overflow: hidden; }
+    .drift-bar-fill { height: 100%; border-radius: 4px; }
+    .drift-count { font-size: 13px; font-weight: 700; min-width: 60px; text-align: right; }
+
+    /* ── Rate bar ── */
+    .rate-bar { display:flex;align-items:center;gap:8px; }
+    .rate-track { flex:1; height:6px; background:var(--border); border-radius:3px; overflow:hidden; }
+    .rate-fill  { height:100%; border-radius:3px; }
+    .rate-low   { background: var(--success); }
+    .rate-mid   { background: var(--warning); }
+    .rate-high  { background: var(--danger); }
+    .rate-label { font-size:12px; font-weight:700; min-width:38px; text-align:right; }
+
+    /* ── Spark job list ── */
+    .spark-list { display:flex;flex-direction:column;gap:8px; }
+    .spark-row {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 11px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .spark-name { font-size: 13px; font-weight: 600; color: var(--navy); flex: 1; font-family: 'SF Mono', monospace; font-size: 12px; }
+    .spark-meta { font-size: 11px; color: var(--muted); min-width: 90px; }
+
+    /* ── Zombie row ── */
+    .zombie-row { background: #fff5f5; }
+    .zombie-row td { border-bottom: 1px solid #fecaca !important; }
+
+    /* ── Accumulation bars ── */
+    .acc-bar-wrap { display:flex;align-items:flex-end;gap:5px;height:90px;position:relative; }
+    .acc-col { display:flex;flex-direction:column;align-items:center;gap:3px; }
+    .acc-bar { width:18px; border-radius:3px 3px 0 0; }
+    .acc-lbl { font-size:9px; color:var(--muted); }
+
+    /* ── Heatmap ── */
+    .hm-day { width:22px;height:22px;border-radius:3px;cursor:default;position:relative; }
+
+    /* ── Trino query list ── */
+    .query-row {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .query-text { font-size: 12px; font-family: monospace; flex: 1; color: var(--navy-mid); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .query-meta { font-size: 11px; color: var(--muted); }
+
+    /* ── Responsive ── */
+    @media (max-width: 1100px) {
+      .grid-4 { grid-template-columns: repeat(2,1fr); }
+      .grid-3 { grid-template-columns: repeat(2,1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<header>
+  <div class="logo">
+    <div class="logo-circle"></div>
+    <span class="logo-text">Data <span>Platform</span> Monitoring</span>
+  </div>
+  <div class="header-right">
+    <div class="refresh-badge">
+      <span class="dot-live"></span>
+      Actualisé il y a 43s
+    </div>
+    <span class="env-badge">PRODUCTION</span>
+  </div>
+</header>
+
+<!-- ══ TABS PRINCIPAUX ══ -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('infra',this)">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+    Infrastructure
+  </div>
+  <div class="tab" onclick="switchTab('pipelines',this)">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+    Pipelines
+    <span class="tab-badge">7</span>
+  </div>
+  <div class="tab" onclick="switchTab('kpis',this)">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+    Données / KPIs
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════ -->
+<!--  TAB 1 — INFRASTRUCTURE                          -->
+<!-- ══════════════════════════════════════════════════ -->
+<div id="pane-infra" class="pane active">
+
+  <!-- Sous-onglets infra -->
+  <div class="subtabs">
+    <div class="subtab active" onclick="switchSubTab('overview',this)">
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Vue d'ensemble
+    </div>
+    <div class="subtab" onclick="switchSubTab('kubernetes',this)">
+      <span class="subtab-badge-warn"></span>
+      Kubernetes
+    </div>
+    <div class="subtab" onclick="switchSubTab('airflow',this)">
+      <span class="subtab-badge-err"></span>
+      Airflow — Scheduler
+    </div>
+    <div class="subtab" onclick="switchSubTab('trino',this)">
+      <span class="subtab-badge-ok"></span>
+      Trino
+    </div>
+  </div>
+
+  <div class="content">
+
+  <!-- ─── SOUS-ONGLET : VUE D'ENSEMBLE ─── -->
+  <div id="subpane-overview" class="subpane active">
+
+    <div class="grid grid-3" style="margin-bottom:20px">
+
+      <!-- Airflow -->
+      <div class="svc-card degraded">
+        <div>
+          <div class="svc-name">Airflow</div>
+          <div class="svc-status" style="color:var(--danger)">Scheduler dégradé</div>
+          <div class="svc-detail">v2.7.3 · 3 schedulers HA · KubernetesExecutor</div>
+          <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
+            <span class="pill pill-success"><span class="pill-dot"></span>Webserver</span>
+            <span class="pill pill-danger"><span class="pill-dot"></span>54 tasks bloquées</span>
+            <span class="pill pill-success"><span class="pill-dot"></span>DB</span>
+          </div>
+        </div>
+        <div class="svc-icon" style="background:var(--danger-lt)">
+          <svg width="22" height="22" fill="none" stroke="var(--danger)" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+      </div>
+
+      <!-- Trino -->
+      <div class="svc-card">
+        <div>
+          <div class="svc-name">Trino</div>
+          <div class="svc-status" style="color:var(--success)">Opérationnel</div>
+          <div class="svc-detail">v435 · 12 workers actifs</div>
+          <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
+            <span class="pill pill-success"><span class="pill-dot"></span>Coordinator</span>
+            <span class="pill pill-info"><span class="pill-dot"></span>4 queries actives</span>
+          </div>
+        </div>
+        <div class="svc-icon" style="background:var(--success-lt)">
+          <svg width="22" height="22" fill="none" stroke="var(--success)" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+        </div>
+      </div>
+
+      <!-- K8s -->
+      <div class="svc-card" style="border-color:#fcd34d;background:#fffdf0">
+        <div>
+          <div class="svc-name">Kubernetes</div>
+          <div class="svc-status" style="color:var(--warning)">Attention</div>
+          <div class="svc-detail">1 nœud sous pression mémoire</div>
+          <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
+            <span class="pill pill-success"><span class="pill-dot"></span>8 Ready</span>
+            <span class="pill pill-warning"><span class="pill-dot"></span>1 Pressure</span>
+          </div>
+        </div>
+        <div class="svc-icon" style="background:var(--warning-lt)">
+          <svg width="22" height="22" fill="none" stroke="var(--warning)" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPIs résumés -->
+    <div class="grid grid-4">
+      <div class="kpi-card danger">
+        <div class="kpi-label">Tasks "scheduled" bloquées</div>
+        <div class="kpi-number" style="color:var(--danger)">54</div>
+        <div class="kpi-delta down">Depuis 28 min — voir Airflow</div>
+      </div>
+      <div class="kpi-card orange">
+        <div class="kpi-label">Zombies running (pod absent)</div>
+        <div class="kpi-number" style="color:var(--orange)">12</div>
+        <div class="kpi-delta down">Bloquent 12 slots executor</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Open slots executor</div>
+        <div class="kpi-number" style="color:var(--teal-dark)">2 / 128</div>
+        <div class="kpi-delta neutral">Parallelism saturé</div>
+      </div>
+      <div class="kpi-card success">
+        <div class="kpi-label">Pods Spark actifs K8s</div>
+        <div class="kpi-number" style="color:var(--success)">114</div>
+        <div class="kpi-delta neutral">3 pending · 1 failed</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SOUS-ONGLET : KUBERNETES ─── -->
+  <div id="subpane-kubernetes" class="subpane">
+
+    <!-- Nodes -->
+    <div class="section-title">
+      Nœuds du cluster <span class="count">9 nœuds</span>
+    </div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="node-grid">
+        <div class="node-item">
+          <div class="node-name">node-worker-01 <span class="pill pill-success" style="font-size:10px">Ready</span></div>
+          <div class="node-meta"><span>CPU</span><span>34%</span></div>
+          <div class="bar-wrap"><div class="bar-fill bar-ok" style="width:34%"></div></div>
+          <div class="node-meta"><span>Mém.</span><span>61%</span></div>
+          <div class="bar-wrap"><div class="bar-fill bar-mid" style="width:61%"></div></div>
+        </div>
+        <div class="node-item">
+          <div class="node-name">node-worker-02 <span class="pill pill-success" style="font-size:10px">Ready</span></div>
+          <div class="node-meta"><span>CPU</span><span>52%</span></div>
+          <div class="bar-wrap"><div class="bar-fill bar-mid" style="width:52%"></div></div>
+          <div class="node-meta"><span>Mém.</span><span>45%</span></div>
+          <div class="bar-wrap"><div class="bar-fill bar-ok" style="width:45%"></div></div>
+        </div>
+        <div class="node-item" style="border-color:#fcd34d;background:#fffdf0">
+          <div class="node-name">node-worker-03 <span class="pill pill-warning" style="font-size:10px">Pressure</span></div>
+          <div class="node-meta"><span>CPU</span><span>71%</span></div>
+          <div class="bar-wrap"><div class="bar-fill bar-mid" style="width:71%"></div></div>
+          <div class="node-meta"><span>Mém.</span><span>89%</span></div>
+          <div class="bar-wrap"><div class="bar-fill bar-hi" style="width:89%"></div></div>
+        </div>
+        <div class="node-item">
+          <div class="node-name">node-worker-04 <span class="pill pill-success" style="font-size:10px">Ready</span></div>
+          <div class="node-meta"><span>CPU</span><span>22%</span></div>
+          <div class="bar-wrap"><div class="bar-fill bar-ok" style="width:22%"></div></div>
+          <div class="node-meta"><span>Mém.</span><span>38%</span></div>
+          <div class="bar-wrap"><div class="bar-fill bar-ok" style="width:38%"></div></div>
+        </div>
+        <div class="node-item">
+          <div class="node-name">node-worker-05 <span class="pill pill-success" style="font-size:10px">Ready</span></div>
+          <div class="node-meta"><span>CPU</span><span>47%</span></div>
+          <div class="bar-wrap"><div class="bar-fill bar-ok" style="width:47%"></div></div>
+          <div class="node-meta"><span>Mém.</span><span>52%</span></div>
+          <div class="bar-wrap"><div class="bar-fill bar-mid" style="width:52%"></div></div>
+        </div>
+        <div class="node-item">
+          <div class="node-name">node-spark-01 <span class="pill pill-success" style="font-size:10px">Ready</span></div>
+          <div class="node-meta"><span>CPU</span><span>68%</span></div>
+          <div class="bar-wrap"><div class="bar-fill bar-mid" style="width:68%"></div></div>
+          <div class="node-meta"><span>Mém.</span><span>74%</span></div>
+          <div class="bar-wrap"><div class="bar-fill bar-mid" style="width:74%"></div></div>
+        </div>
+        <div class="node-item">
+          <div class="node-name">node-spark-02 <span class="pill pill-success" style="font-size:10px">Ready</span></div>
+          <div class="node-meta"><span>CPU</span><span>55%</span></div>
+          <div class="bar-wrap"><div class="bar-fill bar-mid" style="width:55%"></div></div>
+          <div class="node-meta"><span>Mém.</span><span>60%</span></div>
+          <div class="bar-wrap"><div class="bar-fill bar-mid" style="width:60%"></div></div>
+        </div>
+        <div class="node-item">
+          <div class="node-name">node-master-01 <span class="pill pill-success" style="font-size:10px">Ready</span></div>
+          <div class="node-meta"><span>CPU</span><span>18%</span></div>
+          <div class="bar-wrap"><div class="bar-fill bar-ok" style="width:18%"></div></div>
+          <div class="node-meta"><span>Mém.</span><span>29%</span></div>
+          <div class="bar-wrap"><div class="bar-fill bar-ok" style="width:29%"></div></div>
+        </div>
+        <div class="node-item">
+          <div class="node-name">node-master-02 <span class="pill pill-success" style="font-size:10px">Ready</span></div>
+          <div class="node-meta"><span>CPU</span><span>15%</span></div>
+          <div class="bar-wrap"><div class="bar-fill bar-ok" style="width:15%"></div></div>
+          <div class="node-meta"><span>Mém.</span><span>25%</span></div>
+          <div class="bar-wrap"><div class="bar-fill bar-ok" style="width:25%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Jobs Spark -->
+    <div class="section-title">Jobs Spark sur Kubernetes <span class="count">6 pods</span></div>
+    <div class="spark-list">
+      <div class="spark-row">
+        <span class="pill pill-success"><span class="pill-dot"></span>Running</span>
+        <span class="spark-name">spark-ingestion-crm-driver</span>
+        <span class="spark-meta">node-spark-01</span>
+        <span class="spark-meta">Démarré 09:14</span>
+        <span class="spark-meta">3.2 cores · 8Gi</span>
+      </div>
+      <div class="spark-row">
+        <span class="pill pill-success"><span class="pill-dot"></span>Running</span>
+        <span class="spark-name">spark-transform-finance-driver</span>
+        <span class="spark-meta">node-spark-02</span>
+        <span class="spark-meta">Démarré 09:31</span>
+        <span class="spark-meta">2.8 cores · 6Gi</span>
+      </div>
+      <div class="spark-row" style="border-color:#fcd34d;background:#fffdf0">
+        <span class="pill pill-warning"><span class="pill-dot"></span>Pending</span>
+        <span class="spark-name">spark-export-datalake-driver</span>
+        <span class="spark-meta">— en attente</span>
+        <span class="spark-meta">Soumis 09:58</span>
+        <span class="spark-meta">4 cores · 12Gi</span>
+      </div>
+      <div class="spark-row" style="border-color:#fca5a5;background:#fff5f5">
+        <span class="pill pill-danger"><span class="pill-dot"></span>Failed</span>
+        <span class="spark-name">spark-quality-check-rh-driver</span>
+        <span class="spark-meta">node-worker-03</span>
+        <span class="spark-meta">Arrêté 08:47</span>
+        <span class="spark-meta" style="color:var(--danger)">OOMKilled</span>
+      </div>
+      <div class="spark-row">
+        <span class="pill pill-success"><span class="pill-dot"></span>Running</span>
+        <span class="spark-name">spark-ingestion-erp-driver</span>
+        <span class="spark-meta">node-spark-01</span>
+        <span class="spark-meta">Démarré 10:05</span>
+        <span class="spark-meta">2.1 cores · 5Gi</span>
+      </div>
+      <div class="spark-row">
+        <span class="pill pill-muted"><span class="pill-dot"></span>Completed</span>
+        <span class="spark-name">spark-reconciliation-daily-driver</span>
+        <span class="spark-meta">—</span>
+        <span class="spark-meta">Terminé 07:22</span>
+        <span class="spark-meta">Durée : 1h 14min</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SOUS-ONGLET : AIRFLOW ─── -->
+  <div id="subpane-airflow" class="subpane">
+
+    <!-- Alerte principale -->
+    <div class="alert-banner critical">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px">
+        <div>
+          <div class="alert-title" style="color:var(--danger)">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Accumulation de tâches "scheduled" — executor saturé
+          </div>
+          <div class="alert-subtitle">
+            54 tâches bloquées à l'état "scheduled" (ne passent pas à "queued") ·
+            Cause : 12 tâches "running" zombies occupent des slots → open_slots = 2/128 →
+            critical section tourne à vide · Connection pool DB intermittent (conséquence)
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0">
+          <button class="btn-ghost" style="font-size:12px">Historique</button>
+          <button class="btn btn-danger" style="font-size:12px">Restart schedulers</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Métriques -->
+    <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:20px;box-shadow:var(--shadow)">
+      <div class="metrics-row">
+        <div class="metric-cell">
+          <div class="m-label">Scheduled bloquées</div>
+          <div class="m-value" style="color:var(--danger)">54</div>
+          <div class="m-sub">Depuis 28 min</div>
+        </div>
+        <div class="metric-cell">
+          <div class="m-label">Running zombies</div>
+          <div class="m-value" style="color:var(--orange)">12</div>
+          <div class="m-sub">DB running · K8s absent</div>
+        </div>
+        <div class="metric-cell">
+          <div class="m-label">Open slots</div>
+          <div class="m-value" style="color:var(--danger)">2 / 128</div>
+          <div class="m-sub">Bloqués par zombies</div>
+        </div>
+        <div class="metric-cell">
+          <div class="m-label">Critical section</div>
+          <div class="m-value" style="color:var(--warning)">9.2s</div>
+          <div class="m-sub">Seuil alerte : 5s</div>
+        </div>
+        <div class="metric-cell">
+          <div class="m-label">DB conn. pool</div>
+          <div class="m-value" style="color:var(--warning)">87%</div>
+          <div class="m-sub">Intermittent (conséquence)</div>
+        </div>
+        <div class="metric-cell">
+          <div class="m-label">Heartbeat</div>
+          <div class="m-value" style="color:var(--success)">3s</div>
+          <div class="m-sub">Scheduler vivant mais bloqué</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-2" style="margin-bottom:20px">
+
+      <!-- Cascade causale -->
+      <div class="card">
+        <div class="card-title">Cascade de blocage identifiée</div>
+        <div class="cascade-step">
+          <div class="step-num step-danger">1</div>
+          <div>
+            <div class="step-title" style="color:var(--danger)">Watcher thread en retard</div>
+            <div class="step-desc">Events K8s (pod completed/failed) non traités → 12 tâches restent "running" en DB alors que le pod n'existe plus</div>
+          </div>
+        </div>
+        <div class="cascade-step">
+          <div class="step-num step-danger">2</div>
+          <div>
+            <div class="step-title" style="color:var(--danger)">open_slots = 2 / 128</div>
+            <div class="step-desc">L'executor considère 126 slots occupés dont 12 par des zombies. Refuse de soumettre de nouvelles tâches.</div>
+          </div>
+        </div>
+        <div class="cascade-step">
+          <div class="step-num step-warn">3</div>
+          <div>
+            <div class="step-title" style="color:var(--warning)">54 tâches coincées en "scheduled"</div>
+            <div class="step-desc">Le scheduler les évalue et les marque "scheduled" mais ne peut pas les passer à "queued" : plus de slots. Elles s'accumulent.</div>
+          </div>
+        </div>
+        <div class="cascade-step">
+          <div class="step-num step-warn">4</div>
+          <div>
+            <div class="step-title" style="color:var(--warning)">Critical section en boucle</div>
+            <div class="step-desc">Le scheduler vérifie en boucle les slots disponibles, prend le verrou DB à chaque tour → critical section = 9.2s.</div>
+          </div>
+        </div>
+        <div class="cascade-step">
+          <div class="step-num step-warn">5</div>
+          <div>
+            <div class="step-title" style="color:var(--warning)">Connection pool intermittent</div>
+            <div class="step-desc">Selon le volume de DAGs évalués ce jour-là, la boucle consomme plus ou moins de connexions. Pas systématique.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Graphe accumulation + drift -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+
+        <div class="card">
+          <div class="card-title">
+            Évolution tasks "scheduled" vs open_slots (8h)
+            <span class="pill pill-danger" style="font-size:10px">Anomalie</span>
+          </div>
+          <div style="display:flex;gap:14px;font-size:11px;margin-bottom:10px">
+            <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:10px;height:3px;background:var(--warning);border-radius:2px"></span>scheduled bloquées</span>
+            <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:10px;height:3px;background:var(--danger);border-radius:2px"></span>running zombies</span>
+            <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:10px;height:3px;background:var(--teal);border-radius:2px"></span>open_slots</span>
+          </div>
+          <div class="acc-bar-wrap">
+            <div class="acc-col"><div class="acc-bar" style="height:5px;background:var(--warning);opacity:.4"></div><div class="acc-bar" style="height:2px;background:var(--danger);opacity:.3"></div><div class="acc-lbl">02h</div></div>
+            <div class="acc-col"><div class="acc-bar" style="height:5px;background:var(--warning);opacity:.4"></div><div class="acc-bar" style="height:2px;background:var(--danger);opacity:.3"></div><div class="acc-lbl">03h</div></div>
+            <div class="acc-col"><div class="acc-bar" style="height:6px;background:var(--warning);opacity:.5"></div><div class="acc-bar" style="height:3px;background:var(--danger);opacity:.4"></div><div class="acc-lbl">04h</div></div>
+            <div class="acc-col"><div class="acc-bar" style="height:7px;background:var(--warning);opacity:.5"></div><div class="acc-bar" style="height:4px;background:var(--danger);opacity:.5"></div><div class="acc-lbl">05h</div></div>
+            <div class="acc-col"><div class="acc-bar" style="height:8px;background:var(--warning);opacity:.6"></div><div class="acc-bar" style="height:5px;background:var(--danger);opacity:.6"></div><div class="acc-lbl">06h</div></div>
+            <div class="acc-col"><div class="acc-bar" style="height:22px;background:var(--warning)"></div><div class="acc-bar" style="height:7px;background:var(--danger)"></div><div class="acc-lbl" style="color:var(--warning);font-weight:700">07h</div></div>
+            <div class="acc-col"><div class="acc-bar" style="height:42px;background:var(--warning)"></div><div class="acc-bar" style="height:9px;background:var(--danger)"></div><div class="acc-lbl" style="color:var(--warning);font-weight:700">08h</div></div>
+            <div class="acc-col"><div class="acc-bar" style="height:62px;background:var(--warning)"></div><div class="acc-bar" style="height:11px;background:var(--danger)"></div><div class="acc-lbl" style="color:var(--danger);font-weight:700">09h</div></div>
+            <div class="acc-col"><div class="acc-bar" style="height:76px;background:var(--warning);animation:pulse 1.5s infinite"></div><div class="acc-bar" style="height:12px;background:var(--danger);animation:pulse 1.5s infinite"></div><div class="acc-lbl" style="color:var(--danger);font-weight:700">Maint.</div></div>
+            <div style="font-size:10px;color:var(--danger);font-weight:700;align-self:flex-end;padding-bottom:16px;margin-left:4px">54</div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:4px;height:18px;margin-top:2px">
+            <div style="flex:1;height:14px;background:var(--teal);border-radius:0 0 2px 2px;opacity:.7"></div>
+            <div style="flex:1;height:14px;background:var(--teal);border-radius:0 0 2px 2px;opacity:.7"></div>
+            <div style="flex:1;height:12px;background:var(--teal);border-radius:0 0 2px 2px;opacity:.6"></div>
+            <div style="flex:1;height:10px;background:var(--teal);border-radius:0 0 2px 2px;opacity:.5"></div>
+            <div style="flex:1;height:8px;background:var(--teal);border-radius:0 0 2px 2px;opacity:.4"></div>
+            <div style="flex:1;height:4px;background:var(--teal);border-radius:0 0 2px 2px;opacity:.3"></div>
+            <div style="flex:1;height:2px;background:var(--teal);border-radius:0 0 2px 2px;opacity:.3"></div>
+            <div style="flex:1;height:1px;background:var(--teal);border-radius:0 0 2px 2px;opacity:.2"></div>
+            <div style="flex:1;height:1px;background:var(--teal);border-radius:0 0 2px 2px;animation:pulse 1.5s infinite"></div>
+            <div style="font-size:10px;color:var(--teal-dark);align-self:flex-end;margin-left:4px">→ 2</div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:8px">
+            open_slots chute en miroir de l'accumulation scheduled · Début : 07h14 · Uptime scheduler : 6 jours
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Répartition instantanée des tâches</div>
+          <div class="drift-row">
+            <span class="drift-label"><strong style="color:var(--warning)">scheduled</strong> — bloquées</span>
+            <div class="drift-bar-wrap"><div class="drift-bar-fill" style="width:100%;background:var(--warning)"></div></div>
+            <span class="drift-count" style="color:var(--warning)">54</span>
+          </div>
+          <div class="drift-row">
+            <span class="drift-label"><strong>running</strong> — réels K8s</span>
+            <div class="drift-bar-wrap"><div class="drift-bar-fill" style="width:84%;background:var(--teal)"></div></div>
+            <span class="drift-count" style="color:var(--teal-dark)">114</span>
+          </div>
+          <div class="drift-row">
+            <span class="drift-label"><strong style="color:var(--danger)">running</strong> — zombies (pod absent)</span>
+            <div class="drift-bar-wrap"><div class="drift-bar-fill" style="width:9%;background:var(--danger)"></div></div>
+            <span class="drift-count" style="color:var(--danger)">12</span>
+          </div>
+          <div class="drift-row">
+            <span class="drift-label"><strong>queued</strong> — soumises executor</span>
+            <div class="drift-bar-wrap"><div class="drift-bar-fill" style="width:2%;background:var(--success)"></div></div>
+            <span class="drift-count" style="color:var(--muted)">2</span>
+          </div>
+          <div style="margin-top:10px;padding:8px 12px;background:var(--teal-light);border-radius:6px;font-size:12px;color:var(--navy-mid)">
+            Sans les 12 zombies → <strong style="color:var(--success)">14 slots libres</strong> et 54 tâches repartiraient immédiatement
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Zombies table -->
+    <div class="section-title">Tâches zombies (DB=running · pod K8s introuvable) <span class="count">12 tâches · bloquent 12 slots</span></div>
+    <div class="card" style="margin-bottom:20px">
+      <table>
+        <thead>
+          <tr>
+            <th>DAG · Tâche</th>
+            <th>Run ID</th>
+            <th>DB running depuis</th>
+            <th>Pod attendu</th>
+            <th>Cause disparition</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="zombie-row">
+            <td><div class="cell-name">dag_crm_ingestion</div><div class="cell-sub">spark_submit_task</div></td>
+            <td style="font-size:12px;color:var(--muted)">scheduled__2026-03-07T04:00</td>
+            <td style="color:var(--danger);font-weight:700">6h 12min</td>
+            <td style="font-size:12px;font-family:monospace;color:var(--navy-mid)">airflow-spark-crm-abc12</td>
+            <td><span class="pill pill-orange">Evicted</span></td>
+            <td><button class="btn btn-danger" style="font-size:11px;padding:4px 10px">Marquer failed</button></td>
+          </tr>
+          <tr class="zombie-row">
+            <td><div class="cell-name">dag_finance_daily</div><div class="cell-sub">spark_submit_task</div></td>
+            <td style="font-size:12px;color:var(--muted)">scheduled__2026-03-07T06:00</td>
+            <td style="color:var(--danger);font-weight:700">4h 03min</td>
+            <td style="font-size:12px;font-family:monospace;color:var(--navy-mid)">airflow-spark-fin-de3f9</td>
+            <td><span class="pill pill-danger">OOMKilled</span></td>
+            <td><button class="btn btn-danger" style="font-size:11px;padding:4px 10px">Marquer failed</button></td>
+          </tr>
+          <tr class="zombie-row">
+            <td><div class="cell-name">dag_erp_transform</div><div class="cell-sub">run_spark_job</div></td>
+            <td style="font-size:12px;color:var(--muted)">scheduled__2026-03-07T05:00</td>
+            <td style="color:var(--danger);font-weight:700">5h 21min</td>
+            <td style="font-size:12px;font-family:monospace;color:var(--navy-mid)">airflow-spark-erp-7a2c1</td>
+            <td><span class="pill pill-muted">Not found</span></td>
+            <td><button class="btn btn-danger" style="font-size:11px;padding:4px 10px">Marquer failed</button></td>
+          </tr>
+          <tr class="zombie-row">
+            <td><div class="cell-name">dag_quality_checks</div><div class="cell-sub">run_dq_spark</div></td>
+            <td style="font-size:12px;color:var(--muted)">scheduled__2026-03-07T03:00</td>
+            <td style="color:var(--danger);font-weight:700">7h 44min</td>
+            <td style="font-size:12px;font-family:monospace;color:var(--navy-mid)">airflow-spark-dq-99f01</td>
+            <td><span class="pill pill-orange">Evicted</span></td>
+            <td><button class="btn btn-danger" style="font-size:11px;padding:4px 10px">Marquer failed</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="padding:12px 14px;font-size:12px;color:var(--muted);border-top:1px solid var(--border-lt);display:flex;justify-content:space-between;align-items:center">
+        <span>Affichage 4 / 12 · <a href="#" style="color:var(--teal-dark)">Voir tous</a></span>
+        <button class="btn btn-danger" style="font-size:12px">Marquer tous failed — libérer 12 slots</button>
+      </div>
+    </div>
+
+    <!-- Historique restarts -->
+    <div class="section-title">Historique restarts scheduler <span class="count">4 semaines · pattern récurrent</span></div>
+    <div class="card">
+      <div style="padding:10px 12px;background:var(--info-lt);border-radius:6px;border:1px solid var(--teal-mid);font-size:12px;color:var(--navy-mid);margin-bottom:14px">
+        <strong>Pattern confirmé :</strong> accumulation toutes les 5–7 jours · restart résout en ~8 min ·
+        Config recommandée : <code style="background:var(--surface);padding:1px 5px;border-radius:3px;border:1px solid var(--border)">zombie_threshold=300</code>
+        <code style="background:var(--surface);padding:1px 5px;border-radius:3px;border:1px solid var(--border)">worker_pods_creation_batch_size=16</code>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Date restart</th><th>Déclencheur</th><th>Scheduled bloquées</th><th>Zombies</th><th>Résolution</th><th>Uptime préc.</th></tr>
+        </thead>
+        <tbody>
+          <tr style="background:#fff5f5">
+            <td style="font-weight:700;color:var(--danger)">07/03/2026 — En cours</td>
+            <td>Accumulation (54 tasks)</td>
+            <td style="color:var(--danger);font-weight:700">54</td>
+            <td style="color:var(--danger)">12</td>
+            <td style="color:var(--muted)">—</td>
+            <td>6 jours</td>
+          </tr>
+          <tr>
+            <td>01/03/2026 09:14</td>
+            <td>Manuel (alerte équipe)</td>
+            <td style="color:var(--warning)">31</td>
+            <td>9</td>
+            <td style="color:var(--success)">7min 30s</td>
+            <td>5 jours</td>
+          </tr>
+          <tr>
+            <td>24/02/2026 11:02</td>
+            <td>Manuel (alerte équipe)</td>
+            <td style="color:var(--warning)">27</td>
+            <td>8</td>
+            <td style="color:var(--success)">9min 12s</td>
+            <td>7 jours</td>
+          </tr>
+          <tr>
+            <td>17/02/2026 14:45</td>
+            <td>Manuel (alerte équipe)</td>
+            <td style="color:var(--warning)">44</td>
+            <td>15</td>
+            <td style="color:var(--success)">11min 05s</td>
+            <td>6 jours</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ─── SOUS-ONGLET : TRINO ─── -->
+  <div id="subpane-trino" class="subpane">
+
+    <div class="grid grid-3" style="margin-bottom:20px">
+      <div class="kpi-card success">
+        <div class="kpi-label">Statut cluster</div>
+        <div class="kpi-number" style="color:var(--success)">Opérationnel</div>
+        <div class="kpi-delta neutral">v435 · uptime 18 jours</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Workers actifs</div>
+        <div class="kpi-number" style="color:var(--teal-dark)">12</div>
+        <div class="kpi-delta neutral">Tous healthy</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Queries actives</div>
+        <div class="kpi-number" style="color:var(--navy)">4</div>
+        <div class="kpi-delta neutral">0 bloquée · 0 failed</div>
+      </div>
+    </div>
+
+    <div class="grid grid-2" style="margin-bottom:20px">
+      <div class="card">
+        <div class="card-title">Ressources cluster</div>
+        <div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:4px"><span>CPU utilisé</span><span style="font-weight:600;color:var(--navy)">38%</span></div>
+          <div class="bar-wrap" style="height:8px"><div class="bar-fill bar-ok" style="width:38%"></div></div>
+        </div>
+        <div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:4px"><span>Mémoire utilisée</span><span style="font-weight:600;color:var(--navy)">54%</span></div>
+          <div class="bar-wrap" style="height:8px"><div class="bar-fill bar-mid" style="width:54%"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:4px"><span>Queries / min (moy. 1h)</span><span style="font-weight:600;color:var(--navy)">23</span></div>
+          <div class="bar-wrap" style="height:8px"><div class="bar-fill bar-teal" style="width:46%"></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Statistiques 24h</div>
+        <div class="drift-row"><span class="drift-label">Queries complétées</span><span class="drift-count" style="color:var(--success)">1 842</span></div>
+        <div class="drift-row"><span class="drift-label">Queries failed</span><span class="drift-count" style="color:var(--danger)">7</span></div>
+        <div class="drift-row"><span class="drift-label">Durée médiane</span><span class="drift-count" style="color:var(--navy)">1.4s</span></div>
+        <div class="drift-row"><span class="drift-label">P95 durée</span><span class="drift-count" style="color:var(--navy)">12.3s</span></div>
+        <div class="drift-row"><span class="drift-label">Données scannées</span><span class="drift-count" style="color:var(--navy)">4.2 TB</span></div>
+      </div>
+    </div>
+
+    <div class="section-title">Queries actives</div>
+    <div class="card">
+      <div class="query-row">
+        <span class="pill pill-info"><span class="pill-dot"></span>Running</span>
+        <span class="query-text">SELECT * FROM hive.finance.transactions WHERE date = '2026-03-07' AND amount > 1000 ...</span>
+        <span class="query-meta">user: analyst1</span>
+        <span class="query-meta">2min 14s</span>
+        <span class="query-meta">1.2 GB scannés</span>
+      </div>
+      <div class="query-row">
+        <span class="pill pill-info"><span class="pill-dot"></span>Running</span>
+        <span class="query-text">INSERT INTO iceberg.dwh.customer_daily SELECT c.id, SUM(o.amount) ...</span>
+        <span class="query-meta">user: spark-svc</span>
+        <span class="query-meta">8min 03s</span>
+        <span class="query-meta">18.4 GB scannés</span>
+      </div>
+      <div class="query-row">
+        <span class="pill pill-info"><span class="pill-dot"></span>Running</span>
+        <span class="query-text">SELECT dag_id, COUNT(*) FROM airflow.public.task_instance GROUP BY dag_id ...</span>
+        <span class="query-meta">user: monitoring</span>
+        <span class="query-meta">0min 12s</span>
+        <span class="query-meta">320 MB scannés</span>
+      </div>
+      <div class="query-row">
+        <span class="pill pill-warning"><span class="pill-dot"></span>Queued</span>
+        <span class="query-text">SELECT * FROM hive.crm.events CROSS JOIN hive.crm.customers WHERE ...</span>
+        <span class="query-meta">user: analyst2</span>
+        <span class="query-meta">En attente</span>
+        <span class="query-meta">—</span>
+      </div>
+    </div>
+  </div>
+
+  </div><!-- /content -->
+</div><!-- /pane-infra -->
+
+
+<!-- ══════════════════════════════════════════════════ -->
+<!--  TAB 2 — PIPELINES                               -->
+<!-- ══════════════════════════════════════════════════ -->
+<div id="pane-pipelines" class="pane">
+<div class="content">
+
+  <div class="toolbar">
+    <label>Du</label>
+    <input type="date" value="2026-03-01">
+    <label>Au</label>
+    <input type="date" value="2026-03-07">
+    <select><option>Tous les pipelines</option><option>Finance</option><option>CRM</option><option>ERP</option></select>
+    <select><option>Tous statuts</option><option>Failed</option><option>Success</option><option>Running</option></select>
+    <button class="btn">Filtrer</button>
+    <div class="spacer"></div>
+    <span style="font-size:13px;color:var(--muted)">7 jours · 142 exécutions</span>
+  </div>
+
+  <div class="grid grid-4" style="margin-bottom:20px">
+    <div class="kpi-card"><div class="kpi-label">Total exécutions</div><div class="kpi-number">142</div><div class="kpi-delta up">+12 vs sem. préc.</div></div>
+    <div class="kpi-card success"><div class="kpi-label">Succès</div><div class="kpi-number" style="color:var(--success)">121</div><div class="kpi-delta neutral">85.2% taux succès</div></div>
+    <div class="kpi-card danger"><div class="kpi-label">En échec</div><div class="kpi-number" style="color:var(--danger)">14</div><div class="kpi-delta down">+3 vs sem. préc.</div></div>
+    <div class="kpi-card orange"><div class="kpi-label">En cours / Retry</div><div class="kpi-number" style="color:var(--orange)">7</div><div class="kpi-delta neutral">Durée moy. 47min</div></div>
+  </div>
+
+  <!-- Heatmap -->
+  <div class="section-title" style="margin-bottom:8px">Activité hebdomadaire par DAG</div>
+  <div class="card" style="margin-bottom:20px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:20px">
+      <div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Statut par DAG / par jour</div>
+        <div style="display:flex;gap:20px">
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:12px;color:var(--muted);padding-top:24px">
+            <span>dag_finance_daily</span><span>dag_crm_ingestion</span><span>dag_erp_transform</span>
+            <span>dag_datalake_export</span><span>dag_quality_checks</span><span>dag_reconciliation</span>
+          </div>
+          <div>
+            <div style="display:flex;gap:8px;margin-bottom:6px">
+              <span style="font-size:11px;color:var(--muted);width:22px;text-align:center">L</span><span style="font-size:11px;color:var(--muted);width:22px;text-align:center">M</span>
+              <span style="font-size:11px;color:var(--muted);width:22px;text-align:center">M</span><span style="font-size:11px;color:var(--muted);width:22px;text-align:center">J</span>
+              <span style="font-size:11px;color:var(--muted);width:22px;text-align:center">V</span><span style="font-size:11px;color:var(--muted);width:22px;text-align:center">S</span>
+              <span style="font-size:11px;color:var(--muted);width:22px;text-align:center">D</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;gap:8px"><div class="hm-day" style="background:#bbf7d0"></div><div class="hm-day" style="background:#bbf7d0"></div><div class="hm-day" style="background:#fecaca"></div><div class="hm-day" style="background:#bbf7d0"></div><div class="hm-day" style="background:#bbf7d0"></div><div class="hm-day" style="background:#bbf7d0"></div><div class="hm-day" style="background:#bbf7d0"></div></div>
+              <div style="display:flex;gap:8px"><div class="hm-day" style="background:#bbf7d0"></div><div class="hm-day" style="background:#fecaca"></div><div class="hm-day" style="background:#fecaca"></div><div class="hm-day" style="background:#bbf7d0"></div><div class="hm-day" style="background:#bbf7d0"></div><div class="hm-day" style="background:#bbf7d0"></div><div class="hm-day" style="background:#bbf7d0"></div></div>
+              <div style="display:flex;gap:8px"><div class="hm-day" style="background:#bbf7d0"></div><div class="hm-day" style="background:#bbf7d0"></div><div class="hm-day" style="background:#bbf7d0"></div><div class="hm-day" style="background:#fef08a"></div><div class="hm-day" style="background:#bbf7d0"></div><div class="hm-day" style="background:#bbf7d0"></div><div class="hm-day" style="background:#bbf7d0"></div></div>
+              <div style="display:flex;gap:8px"><div class="hm-day" style="background:#bbf7d0"></div><div class="hm-day" style="background:#bbf7d0"></div><div class="hm-day" style="background:#bbf7d0"></div><div class="hm-day" style="background:#bbf7d0"></div><div class="hm-day" style="background:#fecaca"></div><div class="hm-day" style="background:#bbf7d0"></div><div class="hm-day" style="background:#bbf7d0"></div></div>
+              <div style="display:flex;gap:8px"><div class="hm-day" style="background:#fecaca"></div><div class="hm-day" style="background:#bbf7d0"></div><div class="hm-day" style="background:#bbf7d0"></div><div class="hm-day" style="background:#fecaca"></div><div class="hm-day" style="background:#bbf7d0"></div><div class="hm-day" style="background:#bbf7d0"></div><div class="hm-day" style="background:#bbf7d0"></div></div>
+              <div style="display:flex;gap:8px"><div class="hm-day" style="background:#bbf7d0"></div><div class="hm-day" style="background:#bbf7d0"></div><div class="hm-day" style="background:#bbf7d0"></div><div class="hm-day" style="background:#bbf7d0"></div><div class="hm-day" style="background:#bbf7d0"></div><div class="hm-day" style="background:#bbf7d0"></div><div class="hm-day" style="background:#bbf7d0"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:12px">
+        <div style="display:flex;align-items:center;gap:6px"><div style="width:14px;height:14px;border-radius:3px;background:#bbf7d0"></div> Succès</div>
+        <div style="display:flex;align-items:center;gap:6px"><div style="width:14px;height:14px;border-radius:3px;background:#fecaca"></div> Échec</div>
+        <div style="display:flex;align-items:center;gap:6px"><div style="width:14px;height:14px;border-radius:3px;background:#fef08a"></div> Partiel / Retry</div>
+        <div style="display:flex;align-items:center;gap:6px"><div style="width:14px;height:14px;border-radius:3px;background:var(--border)"></div> Non exécuté</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">DAGs en échec <span class="count">14 sur la période</span></div>
+  <div class="card">
+    <table>
+      <thead><tr><th>DAG</th><th>Run ID</th><th>Date</th><th>Durée</th><th>Tâche en échec</th><th>Statut</th><th></th></tr></thead>
+      <tbody>
+        <tr><td><div class="cell-name">dag_crm_ingestion</div><div class="cell-sub">owner: data-eng</div></td><td style="font-size:12px;color:var(--muted)">scheduled__2026-03-05T22:00</td><td>05/03 22:03</td><td>12min 34s</td><td style="color:var(--danger);font-size:12px">spark_submit_task</td><td><span class="pill pill-danger"><span class="pill-dot"></span>Failed</span></td><td><a href="#" style="color:var(--teal-dark);font-size:12px">Détails</a></td></tr>
+        <tr><td><div class="cell-name">dag_crm_ingestion</div><div class="cell-sub">owner: data-eng</div></td><td style="font-size:12px;color:var(--muted)">scheduled__2026-03-04T22:00</td><td>04/03 22:07</td><td>8min 11s</td><td style="color:var(--danger);font-size:12px">spark_submit_task</td><td><span class="pill pill-danger"><span class="pill-dot"></span>Failed</span></td><td><a href="#" style="color:var(--teal-dark);font-size:12px">Détails</a></td></tr>
+        <tr><td><div class="cell-name">dag_finance_daily</div><div class="cell-sub">owner: finance-team</div></td><td style="font-size:12px;color:var(--muted)">scheduled__2026-03-03T06:00</td><td>03/03 06:02</td><td>2min 05s</td><td style="color:var(--danger);font-size:12px">extract_source_db</td><td><span class="pill pill-danger"><span class="pill-dot"></span>Failed</span></td><td><a href="#" style="color:var(--teal-dark);font-size:12px">Détails</a></td></tr>
+        <tr><td><div class="cell-name">dag_quality_checks</div><div class="cell-sub">owner: data-eng</div></td><td style="font-size:12px;color:var(--muted)">scheduled__2026-03-04T07:00</td><td>04/03 07:01</td><td>3min 52s</td><td style="color:var(--warning);font-size:12px">run_dq_spark</td><td><span class="pill pill-warning"><span class="pill-dot"></span>Up for retry</span></td><td><a href="#" style="color:var(--teal-dark);font-size:12px">Détails</a></td></tr>
+        <tr><td><div class="cell-name">dag_datalake_export</div><div class="cell-sub">owner: platform</div></td><td style="font-size:12px;color:var(--muted)">scheduled__2026-03-07T02:00</td><td>07/03 02:00</td><td>1min 03s</td><td style="color:var(--danger);font-size:12px">wait_for_upstream</td><td><span class="pill pill-danger"><span class="pill-dot"></span>Failed</span></td><td><a href="#" style="color:var(--teal-dark);font-size:12px">Détails</a></td></tr>
+      </tbody>
+    </table>
+    <div style="padding:10px 14px;font-size:12px;color:var(--muted);border-top:1px solid var(--border-lt)">Affichage 5 / 14 · <a href="#" style="color:var(--teal-dark)">Voir tout</a></div>
+  </div>
+
+</div>
+</div><!-- /pane-pipelines -->
+
+
+<!-- ══════════════════════════════════════════════════ -->
+<!--  TAB 3 — DONNÉES / KPIs                          -->
+<!-- ══════════════════════════════════════════════════ -->
+<div id="pane-kpis" class="pane">
+<div class="content">
+
+  <div class="toolbar">
+    <label>Période</label>
+    <input type="date" value="2026-03-01">
+    <label>→</label>
+    <input type="date" value="2026-03-07">
+    <select><option>Tous les jobs</option><option>Finance</option><option>CRM</option><option>ERP</option></select>
+    <button class="btn">Appliquer</button>
+    <button class="btn-ghost">Exporter CSV</button>
+    <div class="spacer"></div>
+    <span style="font-size:12px;color:var(--muted)">Dernière MAJ : 10:12</span>
+  </div>
+
+  <div class="grid grid-4" style="margin-bottom:20px">
+    <div class="kpi-card success"><div class="kpi-label">Total lignes ingérées</div><div class="kpi-number">84.3M</div><div class="kpi-delta up">+6.1% vs sem. préc.</div></div>
+    <div class="kpi-card danger"><div class="kpi-label">Total lignes rejetées</div><div class="kpi-number" style="color:var(--danger)">128K</div><div class="kpi-delta down">+0.3% vs sem. préc.</div></div>
+    <div class="kpi-card orange"><div class="kpi-label">Taux de rejet global</div><div class="kpi-number" style="color:var(--orange)">0.15%</div><div class="kpi-delta neutral">Seuil alerte : 1%</div></div>
+    <div class="kpi-card"><div class="kpi-label">Jobs exécutés</div><div class="kpi-number">38</div><div class="kpi-delta neutral">Sur 7 jours</div></div>
+  </div>
+
+  <div class="section-title">Détail par job Spark</div>
+  <div class="card">
+    <table>
+      <thead><tr><th>Job</th><th>Date</th><th>Lignes ingérées</th><th>Lignes rejetées</th><th>Taux de rejet</th><th>Statut</th><th>Durée</th></tr></thead>
+      <tbody>
+        <tr><td><div class="cell-name">spark-ingestion-crm</div><div class="cell-sub">source: CRM API</div></td><td>07/03/2026</td><td>2 341 800</td><td>412</td><td><div class="rate-bar"><div class="rate-track"><div class="rate-fill rate-low" style="width:2%"></div></div><span class="rate-label" style="color:var(--success)">0.02%</span></div></td><td><span class="pill pill-success"><span class="pill-dot"></span>OK</span></td><td>47min</td></tr>
+        <tr><td><div class="cell-name">spark-ingestion-erp</div><div class="cell-sub">source: ERP DB</div></td><td>07/03/2026</td><td>5 890 000</td><td>3 210</td><td><div class="rate-bar"><div class="rate-track"><div class="rate-fill rate-low" style="width:5%"></div></div><span class="rate-label" style="color:var(--success)">0.05%</span></div></td><td><span class="pill pill-success"><span class="pill-dot"></span>OK</span></td><td>1h 12min</td></tr>
+        <tr><td><div class="cell-name">spark-transform-finance</div><div class="cell-sub">source: Staging</div></td><td>07/03/2026</td><td>980 500</td><td>14 200</td><td><div class="rate-bar"><div class="rate-track"><div class="rate-fill rate-mid" style="width:100%"></div></div><span class="rate-label" style="color:var(--warning)">1.45%</span></div></td><td><span class="pill pill-warning"><span class="pill-dot"></span>Dégradé</span></td><td>34min</td></tr>
+        <tr><td><div class="cell-name">spark-quality-check-rh</div><div class="cell-sub">source: RH system</div></td><td>06/03/2026</td><td>0</td><td>0</td><td><div class="rate-bar"><div class="rate-track"><div class="rate-fill rate-low" style="width:0%"></div></div><span class="rate-label" style="color:var(--muted)">—</span></div></td><td><span class="pill pill-danger"><span class="pill-dot"></span>Échec</span></td><td>8min</td></tr>
+        <tr><td><div class="cell-name">spark-export-datalake</div><div class="cell-sub">source: DWH</div></td><td>05/03/2026</td><td>12 400 000</td><td>85 600</td><td><div class="rate-bar"><div class="rate-track"><div class="rate-fill rate-high" style="width:69%"></div></div><span class="rate-label" style="color:var(--danger)">0.69%</span></div></td><td><span class="pill pill-warning"><span class="pill-dot"></span>Dégradé</span></td><td>2h 03min</td></tr>
+        <tr><td><div class="cell-name">spark-reconciliation-daily</div><div class="cell-sub">source: Multi-source</div></td><td>05/03/2026</td><td>3 780 000</td><td>890</td><td><div class="rate-bar"><div class="rate-track"><div class="rate-fill rate-low" style="width:2%"></div></div><span class="rate-label" style="color:var(--success)">0.02%</span></div></td><td><span class="pill pill-success"><span class="pill-dot"></span>OK</span></td><td>1h 14min</td></tr>
+      </tbody>
+    </table>
+    <div style="padding:10px 14px;font-size:12px;color:var(--muted);border-top:1px solid var(--border-lt)">Affichage 6 / 38 · <a href="#" style="color:var(--teal-dark)">Voir tout</a></div>
+  </div>
+
+</div>
+</div><!-- /pane-kpis -->
+
+
+<script>
+  function switchTab(name, el) {
+    document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('pane-' + name).classList.add('active');
+    el.classList.add('active');
+    // Masquer/afficher les sous-onglets selon le tab actif
+    document.querySelector('.subtabs').style.display = (name === 'infra') ? 'flex' : 'none';
+  }
+
+  function switchSubTab(name, el) {
+    document.querySelectorAll('.subpane').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.subtab').forEach(t => t.classList.remove('active'));
+    document.getElementById('subpane-' + name).classList.add('active');
+    el.classList.add('active');
+  }
+</script>
+</body>
+</html>
